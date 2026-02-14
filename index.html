@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workday Evolution</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 15px;
+            padding-bottom: 60px;
+            color: white;
+            transition: background 0.3s ease;
+        }
+
+        body.theme-cyberpunk { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); }
+        body.theme-melody { background: linear-gradient(135deg, #ffb3d9 0%, #ff6bc4 50%, #ff1493 100%); }
+        body.theme-aurora { background: linear-gradient(135deg, #1a1a3e 0%, #0f4c5c 50%, #5e548e 100%); }
+        body.theme-vanilla { background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 50%, #d0d0d0 100%); color: #333; }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .theme-cyberpunk .header h1 { background: linear-gradient(90deg, #00d4ff, #ff00ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .theme-melody .header h1 { background: linear-gradient(90deg, #fff, #ffb3d9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .theme-aurora .header h1 { background: linear-gradient(90deg, #4facfe, #00f2fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .theme-vanilla .header h1 { color: #333; }
+
+        /* DROPDOWN MENU */
+        .menu-bar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+            z-index: 10002;
+        }
+
+        .theme-vanilla .menu-bar { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0, 0, 0, 0.1); }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+        }
+
+        .theme-vanilla .dropdown-btn { background: rgba(0, 0, 0, 0.1); color: #333; }
+
+        .dropdown-btn:hover { transform: translateY(-2px); }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 26, 46, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            min-width: 200px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 99999;
+            backdrop-filter: blur(15px);
+        }
+
+        .theme-vanilla .dropdown-content { background: rgba(255, 255, 255, 0.98); border-color: rgba(0, 0, 0, 0.1); }
+
+        .dropdown-content.show { display: block; }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-vanilla .dropdown-item { border-color: rgba(0, 0, 0, 0.05); }
+
+        .dropdown-item:last-child { border-bottom: none; }
+
+        .dropdown-item:hover { background: rgba(255, 255, 255, 0.1); }
+
+        .theme-vanilla .dropdown-item:hover { background: rgba(0, 0, 0, 0.05); }
+
+        .theme-selector {
+            display: flex;
+            gap: 8px;
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .theme-btn:hover { transform: scale(1.1); }
+        .theme-btn.active { border-color: white; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+
+        .theme-btn.cyberpunk { background: linear-gradient(135deg, #00d4ff, #ff00ea); }
+        .theme-btn.melody { background: linear-gradient(135deg, #ffb3d9, #ff6bc4); }
+        .theme-btn.aurora { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .theme-btn.vanilla { background: linear-gradient(135deg, #f5f5f5, #d0d0d0); }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover { transform: translateY(-2px); }
+
+        .btn-secondary { background: rgba(255, 255, 255, 0.15); color: white; }
+        .theme-vanilla .btn-secondary { background: rgba(0, 0, 0, 0.1); color: #333; }
+
+        /* MAIN GRID */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        /* COLLAPSIBLE PANEL */
+        .collapsible-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            overflow: visible;
+            position: relative;
+            z-index: 1;
+        }
+
+        .theme-vanilla .collapsible-panel { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0, 0, 0, 0.1); }
+
+        .panel-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .panel-header:hover { background: rgba(255, 255, 255, 0.05); }
+        .theme-vanilla .panel-header:hover { background: rgba(0, 0, 0, 0.03); }
+
+        .panel-title { font-weight: bold; font-size: 1.1rem; }
+        .panel-toggle { font-size: 1.2rem; transition: transform 0.3s; }
+
+        .panel-content {
+            max-height: none;
+            overflow: visible;
+            padding: 0 20px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .panel-content.collapsed {
+            max-height: 0;
+            padding: 0 20px;
+            overflow: hidden;
+        }
+
+        /* SKILL TREE */
+        .skill-tree {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-vanilla .skill-tree { background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.1); }
+
+        .skill-tree-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .skill-icon { font-size: 2rem; }
+        .skill-info { flex: 1; }
+        .skill-name { font-weight: bold; font-size: 1rem; margin-bottom: 3px; }
+        .skill-level { font-size: 0.85rem; }
+
+        .skill-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+
+        .skill-stat {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 6px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .theme-vanilla .skill-stat { background: rgba(0, 0, 0, 0.05); }
+
+        .skill-stat-value { font-weight: bold; font-size: 1.1rem; }
+        .skill-stat-label { font-size: 0.75rem; opacity: 0.7; }
+
+        .xp-bar-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            height: 18px;
+            overflow: hidden;
+            margin: 10px 0 8px;
+        }
+
+        .theme-vanilla .xp-bar-container { background: rgba(0, 0, 0, 0.1); }
+
+        .xp-bar {
+            height: 100%;
+            transition: width 0.5s ease;
+            position: relative;
+        }
+
+        .xp-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .xp-text { font-size: 0.8rem; opacity: 0.8; }
+
+        /* CURRENT BLOCK */
+        .current-block {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            position: relative;
+            z-index: 100;
+        }
+
+        .theme-vanilla .current-block { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0, 0, 0, 0.1); }
+
+        .block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .block-number { padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 0.95rem; }
+
+        .theme-cyberpunk .block-number { background: linear-gradient(135deg, #00d4ff, #00ff88); color: #000; }
+        .theme-melody .block-number { background: linear-gradient(135deg, #ffb3d9, #ff6bc4); color: #fff; }
+        .theme-aurora .block-number { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #000; }
+        .theme-vanilla .block-number { background: #333; color: #fff; }
+
+        .block-duration { opacity: 0.7; font-size: 0.9rem; }
+        .block-title { font-size: 2rem; margin-bottom: 12px; font-weight: bold; }
+        .block-purpose { font-size: 1rem; opacity: 0.8; margin-bottom: 15px; font-style: italic; }
+
+        .prompt-box {
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid;
+        }
+
+        .theme-cyberpunk .prompt-box { background: rgba(0, 212, 255, 0.15); border-color: rgba(0, 212, 255, 0.5); }
+        .theme-melody .prompt-box { background: rgba(255, 179, 217, 0.15); border-color: rgba(255, 107, 196, 0.5); }
+        .theme-aurora .prompt-box { background: rgba(79, 172, 254, 0.15); border-color: rgba(0, 242, 254, 0.5); }
+        .theme-vanilla .prompt-box { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.1); }
+
+        .block-info {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            margin: 12px 0;
+            border-left: 3px solid;
+        }
+
+        .theme-vanilla .block-info { background: rgba(0, 0, 0, 0.03); }
+        .theme-cyberpunk .block-info { border-color: #00d4ff; }
+        .theme-melody .block-info { border-color: #ff6bc4; }
+        .theme-aurora .block-info { border-color: #4facfe; }
+        .theme-vanilla .block-info { border-color: #333; }
+
+        .block-info strong { display: block; margin-bottom: 6px; font-size: 0.9rem; }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .controls { grid-template-columns: 1fr 1fr; }
+        }
+
+        .btn-complete {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #000;
+            font-size: 1.1rem;
+            padding: 15px;
+        }
+
+        .theme-melody .btn-complete { background: linear-gradient(135deg, #ffb3d9, #ff6bc4); color: #fff; }
+        .theme-aurora .btn-complete { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #000; }
+        .theme-vanilla .btn-complete { background: #4caf50; color: #fff; }
+
+        .btn-pause { background: rgba(255, 152, 0, 0.8); color: white; padding: 15px; }
+        .btn-edit { background: rgba(100, 100, 255, 0.6); color: white; padding: 15px; }
+        .btn-undo { background: rgba(255, 80, 80, 0.6); color: white; padding: 15px; }
+
+        /* BLOCK LIST */
+        .block-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-vanilla .block-item { background: rgba(0, 0, 0, 0.03); }
+        .block-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .theme-vanilla .block-item:hover { background: rgba(0, 0, 0, 0.05); }
+
+        .block-item.current { border: 2px solid; }
+
+        .theme-cyberpunk .block-item.current { background: rgba(0, 212, 255, 0.15); border-color: #00d4ff; }
+        .theme-melody .block-item.current { background: rgba(255, 107, 196, 0.15); border-color: #ff6bc4; }
+        .theme-aurora .block-item.current { background: rgba(79, 172, 254, 0.15); border-color: #4facfe; }
+        .theme-vanilla .block-item.current { background: rgba(76, 175, 80, 0.1); border-color: #4caf50; }
+
+        .block-item.completed { opacity: 0.5; }
+
+        .block-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+        .block-actions button { padding: 6px 10px; font-size: 0.85rem; }
+
+        /* MODALS */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal.show { display: flex; }
+
+        .modal-content {
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .theme-vanilla .modal-content { background: #fff; color: #333; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .theme-vanilla .form-group input,
+        .theme-vanilla .form-group textarea,
+        .theme-vanilla .form-group select {
+            background: #f5f5f5;
+            color: #333;
+            border-color: #ddd;
+        }
+
+        .form-group textarea { min-height: 70px; resize: vertical; }
+
+        /* DEBUG CONSOLE */
+        .debug-console {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid #00d4ff;
+            z-index: 999;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            display: none; /* Hidden until activated from settings */
+        }
+
+        .debug-console.open { 
+            max-height: 250px; 
+            display: block;
+        }
+
+        .debug-header {
+            padding: 8px 15px;
+            background: rgba(0, 212, 255, 0.2);
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .debug-content {
+            padding: 10px 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .debug-log { margin: 2px 0; opacity: 0.8; }
+
+        /* PARTICLES */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .particle {
+            position: absolute;
+            font-size: 24px;
+            animation: float-up 2s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+            100% { opacity: 0; transform: translateY(-600px) rotate(360deg) scale(0.5); }
+        }
+
+        /* LEVEL UP */
+        .level-up-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #00d4ff, #ff00ea);
+            padding: 35px 50px;
+            border-radius: 20px;
+            z-index: 10000;
+            text-align: center;
+            animation: levelUpPop 0.6s ease forwards;
+            box-shadow: 0 0 60px rgba(0, 212, 255, 0.8);
+        }
+
+        @keyframes levelUpPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .level-up-notification h2 { font-size: 2.5rem; margin-bottom: 10px; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+        .skill-manager-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme-vanilla .skill-manager-item { background: rgba(0, 0, 0, 0.03); }
+
+        /* TIMER */
+        .timer-container {
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(90deg, #00d4ff, #ff00ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .timer-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .timer-btn:hover { transform: translateY(-2px); }
+
+        .timer-btn-start { background: linear-gradient(135deg, #00ff88, #00d98a); color: white; }
+        .timer-btn-stop { background: linear-gradient(135deg, #ff6b6b, #ff5252); color: white; }
+        .timer-btn-reset { background: linear-gradient(135deg, #ffa726, #ff9800); color: white; }
+
+        .timer-finished {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .timer-alarm-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 212, 255, 0.3);
+            z-index: 9998;
+            pointer-events: none;
+            animation: flashOverlay 0.5s infinite;
+        }
+
+        @keyframes flashOverlay {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+    </style>
+    <script>
+        // Define critical UI functions IMMEDIATELY so onclick handlers work
+        window.setTheme = function(t) { /* will be overridden with full implementation */ };
+        window.togglePanel = function(id) { /* will be overridden */ };
+        window.toggleDropdown = function(id) { /* will be overridden */ };
+        window.closeAllDropdowns = function() { /* will be overridden */ };
+        window.openAddBlockModal = function() { /* will be overridden */ };
+        window.openManageSkillsModal = function() { /* will be overridden */ };
+        window.openStatsModal = function() { /* will be overridden */ };
+        window.openSetManager = function() { /* will be overridden */ };
+        window.createNewSet = function() { /* will be overridden */ };
+        window.renameSet = function() { /* will be overridden */ };
+        window.deleteSet = function() { /* will be overridden */ };
+        window.switchToSet = function() { /* will be overridden */ };
+        window.resetDayProgress = function() { /* will be overridden */ };
+    </script>
+</head>
+<body class="theme-cyberpunk">
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <div class="header">
+            <h1 id="mainTitle">WORKDAY EVOLUTION</h1>
+            <p id="subtitle" style="opacity: 0.8; font-size: 0.9rem;">Level up your life, track every minute</p>
+        </div>
+
+        <!-- Set Display and Settings (clickable, centered below header) -->
+        <div style="text-align: center; margin-bottom: 20px; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+            <div id="currentSetDisplay" onclick="openSetManager()" style="display: inline-block; padding: 10px 20px; background: rgba(0, 212, 255, 0.2); border: 2px solid #00d4ff; border-radius: 10px; font-weight: bold; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(0,212,255,0.4)';" onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                📂 <span id="headerSetName">default</span> ▼
+            </div>
+            
+            <!-- Settings Dropdown -->
+            <div class="dropdown">
+                <button class="dropdown-btn" onclick="toggleDropdown('settingsDropdown')" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 10px 15px;">⚙️ Settings</button>
+                <div id="settingsDropdown" class="dropdown-content">
+                    <div class="dropdown-item" onclick="openEditTitleModal(); closeAllDropdowns();">✏️ Edit Title</div>
+                    <div class="dropdown-item" onclick="openDebugConsole(); closeAllDropdowns();">🐛 Debug Console</div>
+                    <div class="dropdown-item" onclick="openManageSkillsModal(); closeAllDropdowns();">🎯 Manage Skills</div>
+                    <div class="dropdown-item" onclick="openStatsModal(); closeAllDropdowns();">📊 View Stats</div>
+                    <div class="dropdown-item" style="padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+                        <div style="font-weight: bold; margin-bottom: 8px; font-size: 0.85rem; opacity: 0.7;">THEME:</div>
+                        <div style="display: flex; gap: 8px; justify-content: center;">
+                            <div class="theme-btn cyberpunk active" onclick="setTheme('cyberpunk'); event.stopPropagation();" title="Cyberpunk"></div>
+                            <div class="theme-btn melody" onclick="setTheme('melody'); event.stopPropagation();" title="Melody"></div>
+                            <div class="theme-btn aurora" onclick="setTheme('aurora'); event.stopPropagation();" title="Aurora"></div>
+                            <div class="theme-btn vanilla" onclick="setTheme('vanilla'); event.stopPropagation();" title="Vanilla"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CURRENT BLOCK (full width on top) -->
+        <div id="currentBlockView"></div>
+
+        <!-- SKILL TREES + ALL BLOCKS (stacked below, mobile-friendly) -->
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+            <!-- SKILL TREE PANEL -->
+            <div class="collapsible-panel">
+                <div class="panel-header" onclick="togglePanel('skills')">
+                    <div class="panel-title">🎮 Skill Trees</div>
+                    <div class="panel-toggle" id="skills-toggle">▶</div>
+                </div>
+                <div class="panel-content collapsed" id="skills-content">
+                    <div id="currentSetName" style="text-align: center; margin-bottom: 15px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 8px; font-weight: bold;"></div>
+                    <div id="skillTreesContainer"></div>
+                </div>
+            </div>
+
+            <!-- BLOCK LIST -->
+            <div class="collapsible-panel">
+                <div class="panel-header" onclick="togglePanel('blocks')">
+                    <div class="panel-title">📋 All Blocks</div>
+                    <div class="panel-toggle" id="blocks-toggle">▶</div>
+                </div>
+                <div class="panel-content collapsed" id="blocks-content">
+                    <div id="blockListView"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Console - STARTS CLOSED -->
+    <div class="debug-console" id="debugConsole">
+        <div class="debug-header" onclick="toggleDebug()">
+            <span>🔧 Debug Console</span>
+            <span id="debugToggle">▲</span>
+        </div>
+        <div class="debug-content" id="debugContent"></div>
+    </div>
+
+
+    <!-- ALL MODALS -->
+
+    <!-- Edit Block Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>✏️ Edit Block</h2>
+            <div class="form-group">
+                <label>Block Name *</label>
+                <input type="text" id="editName" required>
+            </div>
+            <div class="form-group">
+                <label>Duration *</label>
+                <input type="text" id="editDuration" required placeholder="e.g., 10-15 min">
+            </div>
+            <div class="form-group">
+                <label>Purpose</label>
+                <input type="text" id="editPurpose">
+            </div>
+            <div class="form-group">
+                <label>Categories - Hold Ctrl/Cmd for multiple</label>
+                <select id="editCategory" multiple style="min-height: 100px;"></select>
+            </div>
+            <div class="form-group">
+                <label>Prompt - Your focus/mantra for this block</label>
+                <textarea id="editPrompt" placeholder="e.g., Stay focused, minimize distractions"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Transition - What to do when block completes</label>
+                <textarea id="editTransition" placeholder="e.g., Take a 5-minute break, stretch"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-complete" style="flex: 1;" onclick="saveBlockEdit()">💾 Save</button>
+                <button class="btn btn-pause" style="flex: 1;" onclick="closeModal('editModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>⚠️ Confirm</h2>
+            <p id="confirmMessage" style="margin: 20px 0;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-pause" style="flex: 1;" id="confirmYes">Confirm</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('confirmModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Title Modal -->
+    <div id="editTitleModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2>✏️ Edit App Title</h2>
+            <div class="form-group">
+                <label>Main Title</label>
+                <input type="text" id="editMainTitle" placeholder="WORKDAY EVOLUTION" style="text-align: center;">
+            </div>
+            <div class="form-group">
+                <label>Subtitle</label>
+                <input type="text" id="editSubtitle" placeholder="Level up your life, track every minute">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-complete" style="flex: 1;" onclick="saveTitleEdit()">💾 Save</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('editTitleModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Set Modal -->
+    <div id="saveSetModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>💾 Save Set</h2>
+            <div class="form-group">
+                <label>Set Name</label>
+                <input type="text" id="setName" placeholder="Monday, Focus Day, etc.">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-complete" style="flex: 1;" onclick="confirmSaveSet()">Save</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('saveSetModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Set Manager Modal -->
+    <div id="setManagerModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <h2>📂 Manage Sets</h2>
+            
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-complete" onclick="createNewSet()" style="width: 100%;">➕ Create New Set</button>
+            </div>
+            
+            <h3 style="margin: 20px 0 10px 0; font-size: 1.1rem;">Your Sets:</h3>
+            <div id="setManagerList"></div>
+            
+            <button class="btn btn-secondary" onclick="closeModal('setManagerModal')" style="margin-top: 20px; width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- Load Set Modal (legacy - keep for backward compatibility) -->
+    <div id="loadSetModal" class="modal">
+        <div class="modal-content">
+            <h2>📂 Load Set</h2>
+            <div id="savedSetsList"></div>
+            <button class="btn btn-secondary" onclick="closeModal('loadSetModal')" style="margin-top: 20px; width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <h2>📊 Global Stats Dashboard</h2>
+            <div id="statsContent"></div>
+            <button class="btn btn-secondary" onclick="closeModal('statsModal')" style="margin-top: 20px; width: 100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- Manage Skills Modal -->
+    <div id="manageSkillsModal" class="modal">
+        <div class="modal-content">
+            <h2>🎯 Manage Skills</h2>
+            <div id="skillsManager"></div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button class="btn btn-complete" style="flex: 1;" onclick="openAddSkillModal()">➕ Add Skill</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('manageSkillsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Skill Modal -->
+    <div id="editSkillModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h2>✏️ Edit Skill</h2>
+            <div class="form-group">
+                <label>Skill Name</label>
+                <input type="text" id="skillEditName">
+            </div>
+            <div class="form-group">
+                <label>Emoji Icon</label>
+                <input type="text" id="skillEditIcon" placeholder="🎯">
+            </div>
+            <div class="form-group">
+                <label>Color (hex)</label>
+                <input type="text" id="skillEditColor" placeholder="#00d4ff">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-complete" style="flex: 1;" onclick="saveSkillEdit()">💾 Save</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal('editSkillModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🎮 System Starting...');
+
+        // Debug logging
+        const debugLogs = [];
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLogs.push(`[${timestamp}] ${message}`);
+            if (debugLogs.length > 100) debugLogs.shift();
+            updateDebugConsole();
+            console.log(message);
+        }
+
+        function updateDebugConsole() {
+            const content = document.getElementById('debugContent');
+            if (content) {
+                content.innerHTML = debugLogs.map(l => `<div class="debug-log">${l}</div>`).join('');
+                content.scrollTop = content.scrollHeight;
+            }
+        }
+
+        window.toggleDebug = function() {
+            const console = document.getElementById('debugConsole');
+            const toggle = document.getElementById('debugToggle');
+            console.classList.toggle('open');
+            toggle.textContent = console.classList.contains('open') ? '▼' : '▲';
+            log('Debug console toggled');
+        }
+
+        // Audio
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        const SKILL_SOUNDS = {
+            japanese: [523.25, 659.25, 783.99],
+            physical: [440, 554.37, 659.25],
+            deepwork: [493.88, 587.33, 698.46],
+            creative: [523.25, 622.25, 739.99],
+            learning: [587.33, 698.46, 830.61]
+        };
+
+        function playSound(frequency, duration) {
+            try {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.frequency.value = frequency;
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                osc.start(audioContext.currentTime);
+                osc.stop(audioContext.currentTime + duration);
+            } catch (e) { }
+        }
+
+        function playSkillSound(key) {
+            const freqs = SKILL_SOUNDS[key] || [523.25, 659.25, 783.99];
+            freqs.forEach((f, i) => setTimeout(() => playSound(f, 0.15), i * 100));
+        }
+
+        function createParticles(emojis, count = 15) {
+            const container = document.getElementById('particles');
+            const arr = Array.isArray(emojis) ? emojis : [emojis];
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.textContent = arr[Math.floor(Math.random() * arr.length)];
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = '100%';
+                p.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 2500);
+            }
+        }
+
+        // Default data - 3 TEMPLATE SETS
+        const TEMPLATE_TUTORIAL = [
+            {name:"🎯 Welcome!",duration:"5 min",purpose:"Your first step into intentional time tracking",prompt:"This is your first time block. Hit that timer, do something—anything—for 5 minutes. When done, click Complete Block and watch what happens.",transition:"See? That wasn't so hard. You just completed your first block!",categories:["focus"]},
+            {name:"💼 Try Deep Work",duration:"25 min",purpose:"Experience real focus",prompt:"Pick your most important task. The one you've been avoiding. This 25 minutes is yours. The timer's running. No distractions. Just work.",transition:"How did that feel? You probably got more done than you expected. That's what happens when you eliminate distractions.",categories:["focus"]},
+            {name:"🚶 Movement Break",duration:"5 min",purpose:"Understand why breaks matter",prompt:"You just spent 25 minutes locked in. Your brain did work. Now it needs recovery. Stand up. Move around. Walk. Stretch. This isn't optional—it's part of the process.",transition:"Notice the difference? Breaks aren't wasted time. They're what let you go again.",categories:["wellness"]},
+            {name:"🎨 Create Something",duration:"20 min",purpose:"Balance your brain",prompt:"You've been grinding. Now play. Write, doodle, build, design—doesn't matter. Just make something for the joy of it. No judgment.",transition:"Nice. That creative energy? It feeds everything else you do. Don't skip it.",categories:["creativity"]},
+            {name:"📚 Learn & Grow",duration:"30 min",purpose:"Invest in yourself",prompt:"Time to level up. Study something. Read. Watch a course. Practice a skill. This is you choosing to grow. That's powerful.",transition:"Knowledge stacks. Every session adds up. You're building something here.",categories:["growth"]},
+            {name:"✨ Reflect & Plan",duration:"5 min",purpose:"See what you just accomplished",prompt:"Look at your completed blocks. You showed up. You did the thing. Whether it felt easy or hard, you're here. That counts.",transition:"You just experienced Workday Evolution. Tomorrow, make it yours. Customize these blocks, create new ones, build your perfect day. You got this.",categories:["growth"]}
+        ];
+
+        const TEMPLATE_DEEP_FOCUS = [
+            {name:"Morning Startup",duration:"10 min",purpose:"Plan your deep work sessions",prompt:"Review your priorities. What matters most today? Set your intention.",transition:"Priorities clear. Let's dive in.",categories:["focus"]},
+            {name:"Deep Work Block 1",duration:"90 min",purpose:"Maximum focus on your hardest problem",prompt:"This is your peak mental time. Eliminate distractions. Do the deep work.",transition:"Huge progress. Take a real break.",categories:["focus"]},
+            {name:"Reset Break",duration:"15 min",purpose:"Mental recovery between sessions",prompt:"Walk outside if possible. No screens. Let your mind wander.",transition:"Brain recharged. Ready for round 2.",categories:["wellness"]},
+            {name:"Deep Work Block 2",duration:"90 min",purpose:"Second deep focus session",prompt:"Back to deep work. You've got momentum now. Keep it going.",transition:"Another session complete. You're on fire.",categories:["focus"]},
+            {name:"Lunch & Recharge",duration:"45 min",purpose:"True break with food and movement",prompt:"Eat well. Move your body. Step completely away from work.",transition:"Energy restored. Afternoon sessions await.",categories:["wellness"]},
+            {name:"Deep Work Block 3",duration:"60 min",purpose:"Afternoon deep work push",prompt:"One more deep session. You've got the energy. Make it count.",transition:"That's three deep work blocks. Incredible.",categories:["focus"]},
+            {name:"Batch Tasks",duration:"30 min",purpose:"Clear small tasks and emails",prompt:"Quick tasks, emails, messages. Batch them all here. Don't overthink.",transition:"Inbox at zero. Small tasks handled.",categories:["focus"]},
+            {name:"Shutdown Ritual",duration:"10 min",purpose:"Close your day intentionally",prompt:"Review what you accomplished. Write tomorrow's top 3 priorities. Close your laptop.",transition:"Day complete. Rest well.",categories:["growth"]}
+        ];
+
+        const TEMPLATE_BALANCED = [
+            {name:"Morning Movement",duration:"15 min",purpose:"Start the day with energy",prompt:"Light exercise, yoga, or a walk. Get your blood flowing.",transition:"Endorphins activated. Ready to work.",categories:["wellness"]},
+            {name:"Focus Block 1",duration:"45 min",purpose:"Morning productivity peak",prompt:"Tackle your #1 priority while your mind is fresh.",transition:"Great start. Take a quick break.",categories:["focus"]},
+            {name:"Creative Work",duration:"30 min",purpose:"Balance logic with creativity",prompt:"Work on something creative. Design, write, brainstorm ideas.",transition:"Creative juices flowing.",categories:["creativity"]},
+            {name:"Skill Building",duration:"30 min",purpose:"Learn and grow",prompt:"Study, practice a new skill, or take an online course.",transition:"Knowledge gained. You're investing in yourself.",categories:["growth"]},
+            {name:"Lunch Break",duration:"30 min",purpose:"Midday reset",prompt:"Eat mindfully. Step away from screens. Enjoy your food.",transition:"Fuel in. Energy up.",categories:["wellness"]},
+            {name:"Focus Block 2",duration:"45 min",purpose:"Afternoon productivity",prompt:"Second wind. Stay focused. You've got this.",transition:"Solid work. Keep the momentum.",categories:["focus"]},
+            {name:"Movement Break",duration:"10 min",purpose:"Fight afternoon slump",prompt:"Stand up. Stretch. Do jumping jacks. Move your body.",transition:"Energy restored.",categories:["wellness"]},
+            {name:"Focus Block 3",duration:"45 min",purpose:"Final push",prompt:"Last focused work session. Finish strong.",transition:"You crushed it today.",categories:["focus"]},
+            {name:"Evening Reflection",duration:"10 min",purpose:"Process your day",prompt:"Journal, meditate, or just sit quietly. Reflect on your wins.",transition:"Day complete. You showed up.",categories:["growth"]}
+        ];
+
+        // Universal skills that apply to everyone
+        const DEFAULT_SKILLS = {
+            focus: { icon: '🎯', name: 'Focus Mastery', color: '#00d4ff' },
+            wellness: { icon: '💪', name: 'Physical Wellness', color: '#00ff88' },
+            creativity: { icon: '🎨', name: 'Creative Flow', color: '#ff00ea' },
+            growth: { icon: '📚', name: 'Personal Growth', color: '#ffd700' }
+        };
+
+        // State
+        let globalState = {
+            sets: {},
+            currentSet: 'default',
+            globalStats: {},
+            skillConfig: {},
+            theme: 'cyberpunk',
+            panelsCollapsed: {}
+        };
+
+        let editingIndex = -1;
+        let editingSkillKey = null;
+        let confirmCallback = null;
+        let undoStack = [];
+        
+        // Progressive Leveling System - Hours required for each level tier
+        const LEVEL_TIERS = [
+            { maxLevel: 10, hoursPerLevel: 5, color: '#00ff88', name: 'Beginner' },      // Levels 1-10: 5 hours each = 50 total
+            { maxLevel: 25, hoursPerLevel: 10, color: '#00d4ff', name: 'Intermediate' }, // Levels 11-25: 10 hours each = 150 total  
+            { maxLevel: 50, hoursPerLevel: 20, color: '#ffd700', name: 'Advanced' },     // Levels 26-50: 20 hours each = 500 total
+            { maxLevel: 100, hoursPerLevel: 40, color: '#ff00ea', name: 'Expert' },      // Levels 51-100: 40 hours each = 2000 total
+            { maxLevel: Infinity, hoursPerLevel: 80, color: '#ff1744', name: 'Master' }  // Levels 101+: 80 hours each
+        ];
+        
+        function getHoursForLevel(level) {
+            // Calculate total hours needed to reach a specific level
+            let totalHours = 0;
+            let currentLevel = 1;
+            
+            for (const tier of LEVEL_TIERS) {
+                if (level <= tier.maxLevel) {
+                    totalHours += (level - currentLevel) * tier.hoursPerLevel;
+                    break;
+                } else {
+                    totalHours += (tier.maxLevel - currentLevel + 1) * tier.hoursPerLevel;
+                    currentLevel = tier.maxLevel + 1;
+                }
+            }
+            
+            return totalHours;
+        }
+        
+        function getLevelFromHours(hours) {
+            // Calculate level from total hours invested
+            let level = 1;
+            let hoursRemaining = hours;
+            
+            for (const tier of LEVEL_TIERS) {
+                const levelsInTier = tier.maxLevel - level + 1;
+                const hoursInTier = levelsInTier * tier.hoursPerLevel;
+                
+                if (hoursRemaining < hoursInTier) {
+                    level += Math.floor(hoursRemaining / tier.hoursPerLevel);
+                    break;
+                } else {
+                    hoursRemaining -= hoursInTier;
+                    level = tier.maxLevel + 1;
+                }
+            }
+            
+            return level;
+        }
+        
+        function getLevelTier(level) {
+            // Get the tier information for a given level
+            for (const tier of LEVEL_TIERS) {
+                if (level <= tier.maxLevel) {
+                    return tier;
+                }
+            }
+            return LEVEL_TIERS[LEVEL_TIERS.length - 1];
+        }
+        
+        function getProgressToNextLevel(hours, level) {
+            // Calculate percentage progress to next level
+            const hoursForCurrent = getHoursForLevel(level);
+            const hoursForNext = getHoursForLevel(level + 1);
+            const hoursNeeded = hoursForNext - hoursForCurrent;
+            const hoursProgress = hours - hoursForCurrent;
+            
+            return Math.min(100, Math.max(0, (hoursProgress / hoursNeeded) * 100));
+        }
+
+        // Timer state
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerRunning = false;
+        let timerTargetMinutes = 0;
+
+        // Continue in next message...
+
+        // Helper functions
+        function getSet(name) {
+            if (!globalState.sets[name]) {
+                globalState.sets[name] = {
+                    blocks: [],
+                    currentIndex: 0,
+                    isPaused: false,
+                    completed: [],
+                    stats: {}
+                };
+            }
+            return globalState.sets[name];
+        }
+
+        function getCurrentSet() {
+            return getSet(globalState.currentSet);
+        }
+
+        function initializeStats(setName) {
+            const set = getSet(setName);
+            Object.keys(globalState.skillConfig).forEach(key => {
+                if (!set.stats[key]) {
+                    set.stats[key] = { xp: 0, level: 1, totalMinutes: 0, sessionCount: 0 };
+                }
+                if (!globalState.globalStats[key]) {
+                    globalState.globalStats[key] = { xp: 0, level: 1, totalMinutes: 0, sessionCount: 0 };
+                }
+            });
+        }
+
+        function getXPForBlock(dur) {
+            return Math.floor((parseInt(dur.split('-')[0]) || 10) / 5) * 10;
+        }
+
+        function getMinutes(dur) {
+            const m = dur.match(/(\d+)/);
+            return m ? parseInt(m[1]) : 10;
+        }
+
+        function formatTime(mins) {
+            if (mins < 60) return mins + 'm';
+            const h = Math.floor(mins / 60);
+            const m = mins % 60;
+            return m > 0 ? h + 'h ' + m + 'm' : h + 'h';
+        }
+
+        function addXP(cat, amt, mins, setName) {
+            const set = getSet(setName);
+            
+            // CREATE stats if they don't exist (for new sets or new skills)
+            if (!set.stats[cat]) {
+                set.stats[cat] = { xp: 0, level: 1, totalMinutes: 0, sessionCount: 0, lastUpdated: -1 };
+                log('Created new skill stat: ' + cat + ' for set: ' + setName);
+            }
+            
+            const oldLvl = set.stats[cat].level;
+            set.stats[cat].totalMinutes += mins;
+            set.stats[cat].sessionCount += 1;
+            set.stats[cat].lastUpdated = set.completed.length - 1;
+            
+            // Calculate level from total hours
+            const hours = set.stats[cat].totalMinutes / 60;
+            const newLevel = getLevelFromHours(hours);
+            
+            if (newLevel > oldLvl) {
+                set.stats[cat].level = newLevel;
+                showLevelUp(cat, newLevel);
+            }
+            
+            // Update global stats
+            if (!globalState.globalStats[cat]) {
+                globalState.globalStats[cat] = { xp: 0, level: 1, totalMinutes: 0, sessionCount: 0 };
+            }
+            globalState.globalStats[cat].totalMinutes += mins;
+            globalState.globalStats[cat].sessionCount += 1;
+            
+            // Calculate global level from all sets combined
+            const totalMinutes = Object.values(globalState.sets).reduce((sum, s) => 
+                sum + (s.stats[cat]?.totalMinutes || 0), 0);
+            const totalHours = totalMinutes / 60;
+            globalState.globalStats[cat].level = getLevelFromHours(totalHours);
+            
+            saveGlobalState();
+        }
+
+        function showLevelUp(cat, lvl) {
+            playSkillSound(cat);
+            const cfg = globalState.skillConfig[cat];
+            createParticles([cfg.icon], 30);
+            
+            const n = document.createElement('div');
+            n.className = 'level-up-notification';
+            n.innerHTML = '<h2>🎉 LEVEL UP! 🎉</h2><p style="font-size:2rem;">' + cfg.icon + ' ' + cfg.name + '</p><p style="font-size:3rem;margin:20px 0;">Level ' + lvl + '</p>';
+            document.body.appendChild(n);
+            setTimeout(() => n.remove(), 3000);
+            log('Level up! ' + cfg.name + ' → ' + lvl);
+        }
+
+        // UI Functions
+        window.setTheme = function(t) {
+            globalState.theme = t;
+            document.body.className = 'theme-' + t;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            const btn = document.querySelector('.theme-btn.' + t);
+            if (btn) btn.classList.add('active');
+            saveGlobalState();
+            log('Theme: ' + t);
+        }
+
+        window.togglePanel = function(id) {
+            const content = document.getElementById(id + '-content');
+            const toggle = document.getElementById(id + '-toggle');
+            const collapsed = content.classList.contains('collapsed');
+            
+            if (collapsed) {
+                content.classList.remove('collapsed');
+                toggle.textContent = '▼';
+                globalState.panelsCollapsed[id] = false;
+            } else {
+                content.classList.add('collapsed');
+                toggle.textContent = '▶';
+                globalState.panelsCollapsed[id] = true;
+            }
+            saveGlobalState();
+        }
+
+        window.toggleDropdown = function(id) {
+            const dropdown = document.getElementById(id);
+            dropdown.classList.toggle('show');
+            // Close other dropdowns
+            document.querySelectorAll('.dropdown-content').forEach(d => {
+                if (d.id !== id) d.classList.remove('show');
+            });
+        }
+
+        window.closeAllDropdowns = function() {
+            document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.matches('.dropdown-btn')) {
+                document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        window.closeModal = function(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        function renderSkillTrees() {
+            const set = getCurrentSet();
+            document.getElementById('currentSetName').textContent = 'Set: ' + globalState.currentSet;
+            document.getElementById('headerSetName').textContent = globalState.currentSet;
+            
+            // Only show skills that are actually in this set's stats
+            const setSkills = Object.keys(set.stats || {}).filter(key => globalState.skillConfig[key]);
+            
+            if (setSkills.length === 0) {
+                document.getElementById('skillTreesContainer').innerHTML = '<div style="text-align:center;padding:30px;opacity:0.6;">No skills in this set yet.<br>Complete blocks to start tracking!</div>';
+                return;
+            }
+            
+            document.getElementById('skillTreesContainer').innerHTML = setSkills.map(key => {
+                const stat = set.stats[key] || { xp: 0, level: 1, totalMinutes: 0, sessionCount: 0, lastUpdated: -1 };
+                const cfg = globalState.skillConfig[key];
+                
+                // Calculate progress using hours-based system
+                const hours = stat.totalMinutes / 60;
+                const level = stat.level;
+                const prog = getProgressToNextLevel(hours, level);
+                const tier = getLevelTier(level);
+                const hoursForNext = getHoursForLevel(level + 1);
+                const hoursForCurrent = getHoursForLevel(level);
+                const hoursNeeded = hoursForNext - hoursForCurrent;
+                const hoursProgress = hours - hoursForCurrent;
+                
+                // Calculate blocks since last update
+                const blocksSinceUpdate = stat.lastUpdated === -1 ? 
+                    set.completed.length : 
+                    set.completed.length - stat.lastUpdated - 1;
+                const staleness = blocksSinceUpdate > 0 ? 
+                    '<div style="color:#ff6b6b;font-size:0.8rem;margin-top:5px;">⏱️ ' + blocksSinceUpdate + ' block' + (blocksSinceUpdate === 1 ? '' : 's') + ' ago</div>' : 
+                    '<div style="color:#00ff88;font-size:0.8rem;margin-top:5px;">✓ Recently updated</div>';
+                
+                const tierBadge = '<div style="font-size:0.7rem;opacity:0.8;margin-top:3px;color:' + tier.color + ';">⭐ ' + tier.name + '</div>';
+                
+                return '<div class="skill-tree"><div class="skill-tree-header"><div class="skill-icon">' + cfg.icon + '</div><div class="skill-info"><div class="skill-name">' + cfg.name + '</div><div class="skill-level" style="color:' + tier.color + ';">Level ' + stat.level + '</div>' + tierBadge + '</div></div><div class="xp-bar-container"><div class="xp-bar" style="width:' + prog + '%;background:linear-gradient(90deg,' + tier.color + ',' + tier.color + 'AA);"></div></div><div class="xp-text">' + hoursProgress.toFixed(1) + ' / ' + hoursNeeded.toFixed(0) + ' hours to next level</div><div class="skill-stats"><div class="skill-stat"><div class="skill-stat-value">' + formatTime(stat.totalMinutes) + '</div><div class="skill-stat-label">Time</div></div><div class="skill-stat"><div class="skill-stat-value">' + stat.sessionCount + '</div><div class="skill-stat-label">Sessions</div></div></div>' + staleness + '</div>';
+            }).join('');
+        }
+
+        // Block operations
+        window.completeBlock = function() {
+            const set = getCurrentSet();
+            const block = set.blocks[set.currentIndex];
+            
+            if (!set.completed.includes(set.currentIndex)) {
+                undoStack.push({
+                    setName: globalState.currentSet,
+                    currentIndex: set.currentIndex,
+                    completed: [...set.completed],
+                    stats: JSON.parse(JSON.stringify(set.stats)),
+                    globalStats: JSON.parse(JSON.stringify(globalState.globalStats))
+                });
+                
+                set.completed.push(set.currentIndex);
+                
+                const mins = getMinutes(block.duration);
+                const cats = block.categories || ['focus'];
+                
+                cats.forEach(c => {
+                    addXP(c, 0, mins, globalState.currentSet);
+                    playSkillSound(c);
+                });
+                
+                const emojis = cats.map(c => globalState.skillConfig[c]?.icon || '✨');
+                createParticles(emojis, 20);
+                
+                log('Completed: ' + block.name);
+            }
+            
+            set.isPaused = false;
+            
+            // Check if ALL blocks are now completed
+            if (set.completed.length === set.blocks.length) {
+                // Confirm before resetting
+                if (!confirm('🎉 Congratulations! You completed all blocks!\n\nRestart from the beginning?')) {
+                    // User said no - don't reset, just stay on last block
+                    saveGlobalState();
+                    render();
+                    return;
+                }
+                
+                // All blocks completed! Auto-reset to start
+                log('🎉 All blocks completed! Resetting to start...');
+                
+                // Play completion celebration sound
+                playCompletionCelebration();
+                
+                set.currentIndex = 0;
+                set.completed = [];
+            } else {
+                // Move to next block
+                set.currentIndex++;
+            }
+            
+            // Reset timer for next block
+            resetTimer();
+            
+            saveGlobalState();
+            render();
+        }
+
+        window.undoComplete = function() {
+            if (undoStack.length === 0) {
+                alert('Nothing to undo!');
+                return;
+            }
+            
+            const undo = undoStack.pop();
+            const set = getSet(undo.setName);
+            set.currentIndex = undo.currentIndex;
+            set.completed = undo.completed;
+            set.stats = undo.stats;
+            globalState.globalStats = undo.globalStats;
+            
+            saveGlobalState();
+            render();
+            log('Undone');
+        }
+
+        window.resetDayProgress = function() {
+            if (!confirm('Reset day progress? This will restart the block cycle but keep all your stats and XP.')) {
+                return;
+            }
+            
+            const set = getCurrentSet();
+            set.currentIndex = 0;
+            set.completed = [];
+            set.isPaused = false;
+            
+            // Reset timer
+            resetTimer();
+            
+            saveGlobalState();
+            render();
+            log('🔄 Day progress reset');
+        }
+
+        window.pauseBlock = function() {
+            const set = getCurrentSet();
+            set.isPaused = !set.isPaused;
+            saveGlobalState();
+            render();
+            log(set.isPaused ? 'Paused' : 'Resumed');
+        }
+
+        window.openEditModal = function(idx) {
+            log('Edit block ' + idx);
+            editingIndex = idx;
+            const set = getCurrentSet();
+            const b = set.blocks[idx];
+            
+            document.getElementById('editName').value = b.name;
+            document.getElementById('editDuration').value = b.duration;
+            document.getElementById('editPurpose').value = b.purpose || '';
+            document.getElementById('editPrompt').value = b.prompt || '';
+            document.getElementById('editTransition').value = b.transition || '';
+            
+            const sel = document.getElementById('editCategory');
+            sel.innerHTML = Object.keys(globalState.skillConfig).map(k => {
+                const cfg = globalState.skillConfig[k];
+                return '<option value="' + k + '">' + cfg.icon + ' ' + cfg.name + '</option>';
+            }).join('');
+            
+            const cats = b.categories || ['deepwork'];
+            Array.from(sel.options).forEach(opt => {
+                opt.selected = cats.includes(opt.value);
+            });
+            
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        window.openAddBlockModal = function() {
+            log('Add new block');
+            editingIndex = -1;
+            
+            document.getElementById('editName').value = '';
+            document.getElementById('editDuration').value = '';
+            document.getElementById('editPurpose').value = '';
+            document.getElementById('editPrompt').value = '';
+            document.getElementById('editTransition').value = '';
+            
+            const sel = document.getElementById('editCategory');
+            sel.innerHTML = Object.keys(globalState.skillConfig).map(k => {
+                const cfg = globalState.skillConfig[k];
+                return '<option value="' + k + '">' + cfg.icon + ' ' + cfg.name + '</option>';
+            }).join('');
+            
+            Array.from(sel.options).forEach(opt => opt.selected = opt.value === 'deepwork');
+            
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        window.saveBlockEdit = function() {
+            log('Save block');
+            const sel = document.getElementById('editCategory');
+            const cats = Array.from(sel.selectedOptions).map(o => o.value);
+            
+            const nb = {
+                name: document.getElementById('editName').value,
+                duration: document.getElementById('editDuration').value,
+                purpose: document.getElementById('editPurpose').value,
+                categories: cats.length > 0 ? cats : ['deepwork'],
+                prompt: document.getElementById('editPrompt').value,
+                transition: document.getElementById('editTransition').value
+            };
+            
+            const set = getCurrentSet();
+            if (editingIndex === -1) {
+                set.blocks.splice(set.currentIndex + 1, 0, nb);
+            } else {
+                set.blocks[editingIndex] = nb;
+            }
+            
+            saveGlobalState();
+            closeModal('editModal');
+            render();
+        }
+
+        window.deleteBlock = function(idx) {
+            log('Delete block ' + idx);
+            if (confirm('Delete this block?')) {
+                const set = getCurrentSet();
+                set.blocks.splice(idx, 1);
+                
+                if (idx < set.currentIndex) set.currentIndex--;
+                else if (idx === set.currentIndex && set.currentIndex >= set.blocks.length) {
+                    set.currentIndex = Math.max(0, set.blocks.length - 1);
+                }
+                
+                set.completed = set.completed.map(i => i > idx ? i - 1 : i).filter(i => i !== idx && i < set.blocks.length);
+                
+                saveGlobalState();
+                render();
+            }
+        }
+
+        window.moveBlockUp = function(idx) {
+            if (idx > 0) {
+                const set = getCurrentSet();
+                [set.blocks[idx], set.blocks[idx - 1]] = [set.blocks[idx - 1], set.blocks[idx]];
+                if (set.currentIndex === idx) set.currentIndex = idx - 1;
+                else if (set.currentIndex === idx - 1) set.currentIndex = idx;
+                set.completed = set.completed.map(i => i === idx ? idx - 1 : i === idx - 1 ? idx : i);
+                saveGlobalState();
+                render();
+            }
+        }
+
+        window.moveBlockDown = function(idx) {
+            const set = getCurrentSet();
+            if (idx < set.blocks.length - 1) {
+                [set.blocks[idx], set.blocks[idx + 1]] = [set.blocks[idx + 1], set.blocks[idx]];
+                if (set.currentIndex === idx) set.currentIndex = idx + 1;
+                else if (set.currentIndex === idx + 1) set.currentIndex = idx;
+                set.completed = set.completed.map(i => i === idx ? idx + 1 : i === idx + 1 ? idx : i);
+                saveGlobalState();
+                render();
+            }
+        }
+
+        // Sets
+        // Set Management - CLEAN SYSTEM
+        window.openSetManager = function() {
+            renderSetManager();
+            document.getElementById('setManagerModal').classList.add('show');
+            log('Set manager opened');
+        }
+
+        function renderSetManager() {
+            const sets = Object.keys(globalState.sets);
+            const html = sets.map(name => {
+                const set = globalState.sets[name];
+                const isCurrent = name === globalState.currentSet;
+                const isDefault = name === 'default';
+                
+                return `<div style="padding: 15px; margin: 10px 0; background: ${isCurrent ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.05)'}; border: 2px solid ${isCurrent ? '#00d4ff' : 'transparent'}; border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 1.1rem;">
+                                ${isCurrent ? '▶️ ' : ''}${name}${isCurrent ? ' (Current)' : ''}
+                            </div>
+                            <div style="font-size: 0.85rem; opacity: 0.7; margin-top: 5px;">
+                                ${set.blocks.length} blocks • ${set.completed.length} completed
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            ${!isCurrent ? `<button class="btn btn-complete" onclick="switchToSet('${name}')" style="padding: 8px 12px; font-size: 0.85rem;">Switch</button>` : ''}
+                            <button class="btn btn-secondary" onclick="renameSet('${name}')" style="padding: 8px 12px; font-size: 0.85rem;">✏️ Rename</button>
+                            ${!isDefault ? `<button class="btn btn-pause" onclick="deleteSet('${name}')" style="padding: 8px 12px; font-size: 0.85rem;">🗑️ Delete</button>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            document.getElementById('setManagerList').innerHTML = html || '<p style="text-align:center;opacity:0.6;padding:20px;">No sets yet.</p>';
+        }
+
+        window.createNewSet = function() {
+            const name = prompt('Enter name for new set:', 'New Set');
+            if (!name || !name.trim()) return;
+            
+            const setName = name.trim();
+            if (globalState.sets[setName]) {
+                alert('A set named "' + setName + '" already exists!');
+                return;
+            }
+            
+            log('Creating new set: ' + setName);
+            globalState.sets[setName] = {
+                blocks: [],
+                currentIndex: 0,
+                isPaused: false,
+                completed: [],
+                stats: {}
+            };
+            
+            globalState.currentSet = setName;
+            saveGlobalState();
+            render();
+            renderSetManager();
+            
+            alert('✅ Created new set: ' + setName);
+        }
+
+        window.switchToSet = function(name) {
+            log('Switching to set: ' + name);
+            globalState.currentSet = name;
+            
+            // Reset timer when switching sets
+            resetTimer();
+            
+            saveGlobalState();
+            render();
+            closeModal('setManagerModal');
+        }
+
+        window.renameSet = function(oldName) {
+            const newName = prompt('Rename set "' + oldName + '" to:', oldName);
+            if (!newName || !newName.trim()) return;
+            
+            const setName = newName.trim();
+            if (setName === oldName) return;
+            
+            if (globalState.sets[setName]) {
+                alert('A set named "' + setName + '" already exists!');
+                return;
+            }
+            
+            log('Renaming set: ' + oldName + ' → ' + setName);
+            globalState.sets[setName] = globalState.sets[oldName];
+            delete globalState.sets[oldName];
+            
+            if (globalState.currentSet === oldName) {
+                globalState.currentSet = setName;
+            }
+            
+            saveGlobalState();
+            render();
+            renderSetManager();
+            
+            alert('✅ Renamed to: ' + setName);
+        }
+
+        window.deleteSet = function(name) {
+            if (name === 'default') {
+                alert('Cannot delete the default set!');
+                return;
+            }
+            
+            if (!confirm('Delete set "' + name + '"? This cannot be undone.')) return;
+            
+            log('Deleting set: ' + name);
+            delete globalState.sets[name];
+            
+            if (globalState.currentSet === name) {
+                globalState.currentSet = 'default';
+            }
+            
+            saveGlobalState();
+            render();
+            renderSetManager();
+        }
+
+        // Legacy functions for compatibility
+        window.saveCurrentSet = function() {
+            saveGlobalState();
+            log('Set saved');
+        }
+
+        window.loadSavedSet = function() {
+            openSetManager();
+        }
+
+        window.confirmSaveSet = function() {
+            const name = document.getElementById('setName').value.trim();
+            if (!name) {
+                alert('Enter a name!');
+                return;
+            }
+            
+            log('Saving set: ' + name);
+            const current = getCurrentSet();
+            globalState.sets[name] = JSON.parse(JSON.stringify(current));
+            globalState.currentSet = name;
+            
+            saveGlobalState();
+            closeModal('saveSetModal');
+            document.getElementById('setName').value = '';
+            render();
+        }
+
+        // Stats
+        window.openStatsModal = function() {
+            log('Stats modal');
+            
+            // Level Tier Chart
+            let tierChart = '<div style="background:rgba(255,255,255,0.08);padding:20px;border-radius:15px;margin-bottom:30px;"><h3 style="text-align:center;margin:0 0 20px 0;font-size:1.2rem;">📊 Leveling System</h3><div style="font-size:0.85rem;opacity:0.8;margin-bottom:15px;text-align:center;">Hours required increases as you advance through tiers</div>';
+            
+            LEVEL_TIERS.forEach(tier => {
+                const levelRange = tier.maxLevel === Infinity ? '101+' : 
+                    (tier.maxLevel === 10 ? '1-10' : 
+                    (LEVEL_TIERS.findIndex(t => t === tier) === 0 ? '1' : (LEVEL_TIERS[LEVEL_TIERS.findIndex(t => t === tier) - 1].maxLevel + 1)) + '-' + tier.maxLevel);
+                
+                tierChart += '<div style="background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;margin:8px 0;border-left:4px solid ' + tier.color + ';display:flex;justify-content:space-between;align-items:center;">';
+                tierChart += '<div><span style="color:' + tier.color + ';font-weight:bold;">' + tier.name + '</span> <span style="opacity:0.7;font-size:0.85rem;">Levels ' + levelRange + '</span></div>';
+                tierChart += '<div style="text-align:right;font-size:0.9rem;"><strong>' + tier.hoursPerLevel + ' hours</strong> per level</div>';
+                tierChart += '</div>';
+            });
+            
+            tierChart += '</div>';
+            
+            // Collect ALL unique skills across ALL sets
+            const allSkills = new Set();
+            Object.values(globalState.sets).forEach(set => {
+                if (set.stats) {
+                    Object.keys(set.stats).forEach(key => allSkills.add(key));
+                }
+            });
+            
+            // Calculate aggregated stats for each skill
+            const aggregatedStats = {};
+            allSkills.forEach(key => {
+                const cfg = globalState.skillConfig[key];
+                if (!cfg) return;
+                
+                let totalMinutes = 0;
+                let totalSessions = 0;
+                
+                // Sum across all sets
+                Object.values(globalState.sets).forEach(set => {
+                    if (set.stats && set.stats[key]) {
+                        totalMinutes += set.stats[key].totalMinutes || 0;
+                        totalSessions += set.stats[key].sessionCount || 0;
+                    }
+                });
+                
+                const hours = totalMinutes / 60;
+                const level = getLevelFromHours(hours);
+                const tier = getLevelTier(level);
+                
+                aggregatedStats[key] = {
+                    level: level,
+                    totalMinutes: totalMinutes,
+                    sessionCount: totalSessions,
+                    config: cfg,
+                    tier: tier
+                };
+            });
+            
+            // Calculate totals
+            const totalMins = Object.values(aggregatedStats).reduce((s, st) => s + st.totalMinutes, 0);
+            const totalSess = Object.values(aggregatedStats).reduce((s, st) => s + st.sessionCount, 0);
+            const totalLvls = Object.values(aggregatedStats).reduce((s, st) => s + st.level, 0);
+            
+            let html = tierChart;
+            
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:30px;">';
+            html += '<div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:12px;text-align:center;"><div style="font-size:2rem;font-weight:bold;">' + formatTime(totalMins) + '</div><div style="font-size:0.85rem;opacity:0.7;">Total Time</div></div>';
+            html += '<div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:12px;text-align:center;"><div style="font-size:2rem;font-weight:bold;">' + totalSess + '</div><div style="font-size:0.85rem;opacity:0.7;">Total Sessions</div></div>';
+            html += '<div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:12px;text-align:center;"><div style="font-size:2rem;font-weight:bold;">' + totalLvls + '</div><div style="font-size:0.85rem;opacity:0.7;">Combined Levels</div></div>';
+            html += '</div><h3 style="margin:20px 0;text-align:center;">🌟 All Skills (Across All Sets)</h3>';
+            
+            // Sort skills by total time (most practiced first)
+            const sortedSkills = Object.entries(aggregatedStats).sort((a, b) => b[1].totalMinutes - a[1].totalMinutes);
+            
+            sortedSkills.forEach(([key, stat]) => {
+                const cfg = stat.config;
+                html += '<div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:12px;margin:10px 0;border-left:4px solid ' + stat.tier.color + ';"><div style="display:flex;justify-content:space-between;align-items:center;"><div style="display:flex;align-items:center;gap:10px;"><span style="font-size:2rem;">' + cfg.icon + '</span><div><div style="font-weight:bold;">' + cfg.name + '</div><div style="color:' + stat.tier.color + ';font-size:0.9rem;">Level ' + stat.level + ' • ' + stat.tier.name + '</div></div></div><div style="text-align:right;"><div style="font-size:1.3rem;font-weight:bold;">' + formatTime(stat.totalMinutes) + '</div><div style="font-size:0.85rem;opacity:0.7;">' + stat.sessionCount + ' sessions</div></div></div></div>';
+            });
+            
+            if (sortedSkills.length === 0) {
+                html += '<div style="text-align:center;padding:40px;opacity:0.5;">No skills tracked yet. Complete some blocks to start!</div>';
+            }
+            
+            document.getElementById('statsContent').innerHTML = html;
+            document.getElementById('statsModal').classList.add('show');
+        }
+
+        // Skills management
+        window.openManageSkillsModal = function() {
+            log('Manage skills modal');
+            renderSkillsManager();
+            document.getElementById('manageSkillsModal').classList.add('show');
+        }
+
+        function renderSkillsManager() {
+            document.getElementById('skillsManager').innerHTML = Object.keys(globalState.skillConfig).map(key => {
+                const cfg = globalState.skillConfig[key];
+                return '<div class="skill-manager-item"><div style="display:flex;align-items:center;gap:15px;"><div style="font-size:2.5rem;">' + cfg.icon + '</div><div><div style="font-weight:bold;font-size:1.1rem;">' + cfg.name + '</div><div style="font-size:0.85rem;opacity:0.7;">Color: ' + cfg.color + '</div></div></div><div style="display:flex;gap:8px;"><button class="btn btn-secondary" onclick="editSkill(\'' + key + '\')" style="padding:8px 12px;font-size:0.85rem;">✏️ Edit</button><button class="btn btn-pause" onclick="deleteSkill(\'' + key + '\')" style="padding:8px 12px;font-size:0.85rem;">🗑️</button></div></div>';
+            }).join('');
+        }
+
+        window.editSkill = function(key) {
+            log('Edit skill: ' + key);
+            editingSkillKey = key;
+            const cfg = globalState.skillConfig[key];
+            
+            document.getElementById('skillEditName').value = cfg.name;
+            document.getElementById('skillEditIcon').value = cfg.icon;
+            document.getElementById('skillEditColor').value = cfg.color;
+            
+            document.getElementById('editSkillModal').classList.add('show');
+        }
+
+        window.saveSkillEdit = function() {
+            if (!editingSkillKey) return;
+            
+            const name = document.getElementById('skillEditName').value;
+            const icon = document.getElementById('skillEditIcon').value;
+            const color = document.getElementById('skillEditColor').value;
+            
+            if (name && icon && color) {
+                globalState.skillConfig[editingSkillKey].name = name;
+                globalState.skillConfig[editingSkillKey].icon = icon;
+                globalState.skillConfig[editingSkillKey].color = color;
+                
+                saveGlobalState();
+                closeModal('editSkillModal');
+                renderSkillsManager();
+                render();
+                log('Skill updated: ' + name);
+            }
+        }
+
+        window.deleteSkill = function(key) {
+            if (Object.keys(globalState.skillConfig).length <= 1) {
+                alert('Need at least 1 skill!');
+                return;
+            }
+            
+            if (confirm('Delete ' + globalState.skillConfig[key].name + '?')) {
+                log('Delete skill: ' + key);
+                delete globalState.skillConfig[key];
+                delete globalState.globalStats[key];
+                Object.values(globalState.sets).forEach(s => delete s.stats[key]);
+                saveGlobalState();
+                renderSkillsManager();
+                render();
+            }
+        }
+
+        window.openAddSkillModal = function() {
+            log('Add skill');
+            
+            const name = prompt('Skill name:', 'New Skill');
+            if (!name || !name.trim()) {
+                return;
+            }
+            
+            const icon = prompt('Emoji:', '⭐');
+            const color = prompt('Color (hex):', '#00d4ff');
+            
+            if (name && icon && color) {
+                // Auto-generate key from name (lowercase, no spaces, unique)
+                let key = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                let counter = 1;
+                while (globalState.skillConfig[key]) {
+                    key = name.toLowerCase().replace(/[^a-z0-9]/g, '') + counter;
+                    counter++;
+                }
+                
+                globalState.skillConfig[key] = { name: name.trim(), icon, color };
+                initializeStats(globalState.currentSet);
+                saveGlobalState();
+                renderSkillsManager();
+                render();
+                log('Skill added: ' + name);
+            }
+        }
+
+        // Title Edit Functions
+        window.openEditTitleModal = function() {
+            if (!globalState.customTitle) {
+                globalState.customTitle = {
+                    main: 'WORKDAY EVOLUTION',
+                    subtitle: 'Level up your life, track every minute'
+                };
+            }
+            document.getElementById('editMainTitle').value = globalState.customTitle.main;
+            document.getElementById('editSubtitle').value = globalState.customTitle.subtitle;
+            document.getElementById('editTitleModal').classList.add('show');
+        }
+
+        window.saveTitleEdit = function() {
+            const mainTitle = document.getElementById('editMainTitle').value.trim();
+            const subtitle = document.getElementById('editSubtitle').value.trim();
+            
+            if (!globalState.customTitle) globalState.customTitle = {};
+            globalState.customTitle.main = mainTitle || 'WORKDAY EVOLUTION';
+            globalState.customTitle.subtitle = subtitle || 'Level up your life, track every minute';
+            
+            document.getElementById('mainTitle').textContent = globalState.customTitle.main;
+            document.getElementById('subtitle').textContent = globalState.customTitle.subtitle;
+            
+            saveGlobalState();
+            closeModal('editTitleModal');
+            log('Title updated');
+        }
+
+        // Debug Console Functions
+        window.openDebugConsole = function() {
+            const debugConsole = document.getElementById('debugConsole');
+            debugConsole.style.display = 'block';
+            debugConsole.classList.add('open');
+            document.getElementById('debugToggle').textContent = '▼';
+            debugConsole.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            log('Debug console opened');
+        }
+
+        window.toggleDebug = function() {
+            const debugConsole = document.getElementById('debugConsole');
+            if (debugConsole.classList.contains('open')) {
+                debugConsole.classList.remove('open');
+                setTimeout(() => {
+                    debugConsole.style.display = 'none';
+                }, 300); // Wait for animation
+                document.getElementById('debugToggle').textContent = '▶';
+            } else {
+                debugConsole.style.display = 'block';
+                debugConsole.classList.add('open');
+                document.getElementById('debugToggle').textContent = '▼';
+            }
+        }
+
+        // Timer functions
+        window.startTimer = function() {
+            if (timerRunning) return;
+            timerRunning = true;
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplay();
+                
+                // Check if timer reached target
+                if (timerTargetMinutes > 0 && timerSeconds >= timerTargetMinutes * 60) {
+                    timerAlarm();
+                }
+            }, 1000);
+            render();
+            log('Timer started');
+        }
+
+        window.stopTimer = function() {
+            if (!timerRunning) return;
+            timerRunning = false;
+            clearInterval(timerInterval);
+            render();
+            log('Timer stopped at ' + formatTimerDisplay(timerSeconds));
+        }
+
+        window.resetTimer = function() {
+            timerRunning = false;
+            clearInterval(timerInterval);
+            timerSeconds = 0;
+            const set = getCurrentSet();
+            if (set.blocks.length > 0) {
+                const duration = set.blocks[set.currentIndex].duration;
+                timerTargetMinutes = getMinutes(duration);
+            }
+            updateTimerDisplay();
+            render();
+            log('Timer reset');
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timerDisplay');
+            if (display) {
+                // Show COUNTDOWN (time remaining)
+                const timeRemaining = timerTargetMinutes > 0 ? Math.max(0, (timerTargetMinutes * 60) - timerSeconds) : 0;
+                display.textContent = formatTimerDisplay(timeRemaining);
+                
+                // Add pulsing effect when finished
+                if (timerTargetMinutes > 0 && timerSeconds >= timerTargetMinutes * 60) {
+                    display.classList.add('timer-finished');
+                } else {
+                    display.classList.remove('timer-finished');
+                }
+            }
+        }
+
+        function formatTimerDisplay(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hrs > 0) {
+                return hrs + ':' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+            }
+            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+
+        function timerAlarm() {
+            stopTimer();
+            
+            // Play alarm sound
+            playAlarmSound();
+            
+            // Show flash overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'timer-alarm-overlay';
+            document.body.appendChild(overlay);
+            
+            // Show particles
+            createParticles(['⏰', '⏱️', '🔔', '✅'], 30);
+            
+            // Remove overlay after 3 seconds
+            setTimeout(() => {
+                overlay.remove();
+            }, 3000);
+            
+            log('⏰ Timer finished!');
+            
+            // Show notification
+            if (Notification.permission === 'granted') {
+                new Notification('⏰ Timer Complete!', {
+                    body: 'Time to complete this block!',
+                    icon: '⏰'
+                });
+            }
+        }
+
+        function playAlarmSound() {
+            // Play a pleasant alarm sound
+            const frequencies = [523.25, 659.25, 783.99, 1046.50];
+            frequencies.forEach((freq, i) => {
+                setTimeout(() => {
+                    playSound(freq, 0.3);
+                }, i * 200);
+            });
+            
+            // Repeat the sequence
+            setTimeout(() => {
+                frequencies.forEach((freq, i) => {
+                    setTimeout(() => {
+                        playSound(freq, 0.3);
+                    }, i * 200);
+                });
+            }, 1000);
+        }
+
+        function playCompletionCelebration() {
+            // Play a triumphant celebration sound - ascending major chord progression
+            const celebration = [
+                { freq: 523.25, time: 0 },    // C
+                { freq: 659.25, time: 150 },  // E
+                { freq: 783.99, time: 300 },  // G
+                { freq: 1046.50, time: 450 }, // High C
+                { freq: 1046.50, time: 700 }, // Hold high C
+                { freq: 1046.50, time: 950 }  // Final high C
+            ];
+            
+            celebration.forEach(note => {
+                setTimeout(() => {
+                    playSound(note.freq, 0.4);
+                }, note.time);
+            });
+            
+            log('🎉 Celebration sound played!');
+        }
+
+        // Render
+        function render() {
+            const set = getCurrentSet();
+            if (set.blocks.length === 0) {
+                document.getElementById('currentBlockView').innerHTML = '<div class="current-block" style="text-align:center;padding:40px;"><h2>No blocks!</h2><p style="margin:20px 0;">Add your first block.</p><button class="btn btn-complete" onclick="openAddBlockModal()">➕ Add Block</button></div>';
+                document.getElementById('blockListView').innerHTML = '';
+                return;
+            }
+            
+            const b = set.blocks[set.currentIndex];
+            renderSkillTrees();
+            
+            // Set timer target from block duration
+            if (timerTargetMinutes === 0) {
+                timerTargetMinutes = getMinutes(b.duration);
+            }
+            
+            let html = '<div class="current-block">';
+            if (set.isPaused) html += '<div style="background:rgba(255,152,0,0.3);padding:10px;border-radius:8px;margin-bottom:15px;text-align:center;font-weight:bold;border:2px solid #ffa726;">⏸️ PAUSED</div>';
+            
+            // Add Timer - COUNTDOWN ONLY
+            const timeRemaining = timerTargetMinutes > 0 ? Math.max(0, (timerTargetMinutes * 60) - timerSeconds) : 0;
+            html += '<div class="timer-container">';
+            html += '<div style="font-size:0.9rem;font-weight:bold;opacity:0.8;margin-bottom:5px;">⏱️ TIME REMAINING</div>';
+            html += '<div class="timer-display" id="timerDisplay">' + formatTimerDisplay(timeRemaining) + '</div>';
+            html += '<div class="timer-controls">';
+            if (!timerRunning) {
+                html += '<button class="timer-btn timer-btn-start" onclick="startTimer()">▶️ Start</button>';
+            } else {
+                html += '<button class="timer-btn timer-btn-stop" onclick="stopTimer()">⏸️ Stop</button>';
+            }
+            html += '<button class="timer-btn timer-btn-reset" onclick="resetTimer()">🔄 Reset</button>';
+            html += '</div></div>';
+            
+            html += '<div class="block-header"><div class="block-number">Block ' + (set.currentIndex + 1) + ' / ' + set.blocks.length + '</div><div class="block-duration">' + b.duration + '</div></div>';
+            html += '<div class="block-title">' + b.name + '</div><div class="block-purpose">' + b.purpose + '</div>';
+            html += '<div class="prompt-box">"' + b.prompt + '"</div>';
+            if (b.transition) html += '<div class="block-info"><strong>🔚 When Done:</strong> ' + b.transition + '</div>';
+            html += '<div style="text-align:center;margin:15px 0;opacity:0.7;font-size:0.9rem;">' + set.completed.length + ' completed • ' + (set.blocks.length - set.currentIndex) + ' remaining</div>';
+            html += '<div class="controls" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">';
+            
+            // Complete button - changes label on last block to show it will reset
+            const isLastBlock = set.currentIndex === set.blocks.length - 1;
+            const buttonLabel = isLastBlock ? '✅ Finish & Restart' : '✅ Complete Block';
+            html += '<button class="btn btn-complete" onclick="completeBlock()" style="flex: 2; min-width: 200px; font-size: 1.1rem; padding: 15px;">' + buttonLabel + '</button>';
+            
+            html += '<div class="dropdown" style="flex: 1; min-width: 120px; position: relative; z-index: 10000;"><button class="dropdown-btn" onclick="toggleDropdown(\'blockActionsDropdown\')" style="width: 100%; padding: 15px; background: rgba(255,255,255,0.15); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">⚙️ Actions</button>';
+            html += '<div id="blockActionsDropdown" class="dropdown-content" style="min-width: 180px;">';
+            html += '<div class="dropdown-item" onclick="openEditModal(' + set.currentIndex + '); closeAllDropdowns();">✏️ Edit Block</div>';
+            html += '<div class="dropdown-item" onclick="openAddBlockModal(); closeAllDropdowns();">➕ Add Block</div>';
+            html += '<div class="dropdown-item" onclick="undoComplete(); closeAllDropdowns();"' + (undoStack.length === 0 ? ' style="opacity:0.5; pointer-events:none;"' : '') + '>↩️ Undo</div>';
+            html += '<div class="dropdown-item" onclick="resetDayProgress(); closeAllDropdowns();" style="color: #ffa726;">🔄 Reset Day</div>';
+            html += '</div></div></div></div>';
+            
+            document.getElementById('currentBlockView').innerHTML = html;
+            
+            document.getElementById('blockListView').innerHTML = set.blocks.map((bl, i) => {
+                const cats = bl.categories || ['deepwork'];
+                const icons = cats.map(c => globalState.skillConfig[c]?.icon || '📝').join(' ');
+                const cls = 'block-item' + (set.completed.includes(i) ? ' completed' : '') + (i === set.currentIndex ? ' current' : '');
+                return '<div class="' + cls + '"><div><div style="font-weight:bold;">' + (set.completed.includes(i) ? '✅ ' : '') + (i === set.currentIndex ? '▶️ ' : '') + bl.name + '</div><div style="font-size:0.85rem;opacity:0.7;">' + bl.duration + ' • ' + icons + '</div></div><div class="block-actions">' + (i > 0 ? '<button class="btn btn-secondary" onclick="moveBlockUp(' + i + ')">↑</button>' : '') + (i < set.blocks.length - 1 ? '<button class="btn btn-secondary" onclick="moveBlockDown(' + i + ')">↓</button>' : '') + '<button class="btn btn-secondary" onclick="openEditModal(' + i + ')">✏️</button><button class="btn btn-pause" onclick="deleteBlock(' + i + ')">🗑️</button></div></div>';
+            }).join('');
+        }
+
+        // Save/Load
+        function loadGlobalState() {
+            try {
+                const needsRestore = localStorage.getItem('workday-needs-restore');
+                if (needsRestore === 'true') {
+                    log('Restoring defaults');
+                    globalState.sets['📚 Tutorial'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_TUTORIAL)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    globalState.sets['🎯 Deep Focus'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_DEEP_FOCUS)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    globalState.sets['⚖️ Balanced Day'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_BALANCED)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    globalState.skillConfig = JSON.parse(JSON.stringify(DEFAULT_SKILLS));
+                    globalState.currentSet = '📚 Tutorial';
+                    globalState.theme = 'cyberpunk';
+                    globalState.panelsCollapsed = {};
+                    initializeStats('📚 Tutorial');
+                    initializeStats('🎯 Deep Focus');
+                    initializeStats('⚖️ Balanced Day');
+                    localStorage.removeItem('workday-needs-restore');
+                    saveGlobalState();
+                    return;
+                }
+                
+                const saved = localStorage.getItem('workday-global-final');
+                if (saved) {
+                    globalState = JSON.parse(saved);
+                    if (!globalState.skillConfig) globalState.skillConfig = JSON.parse(JSON.stringify(DEFAULT_SKILLS));
+                    if (!globalState.theme) globalState.theme = 'cyberpunk';
+                    if (!globalState.panelsCollapsed) globalState.panelsCollapsed = {};
+                    if (!globalState.globalStats) globalState.globalStats = {};
+                    if (!globalState.currentSet) globalState.currentSet = Object.keys(globalState.sets)[0] || '📚 Tutorial';
+                    
+                    // Ensure templates exist
+                    if (!globalState.sets['📚 Tutorial']) {
+                        globalState.sets['📚 Tutorial'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_TUTORIAL)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    }
+                    if (!globalState.sets['🎯 Deep Focus']) {
+                        globalState.sets['🎯 Deep Focus'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_DEEP_FOCUS)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    }
+                    if (!globalState.sets['⚖️ Balanced Day']) {
+                        globalState.sets['⚖️ Balanced Day'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_BALANCED)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    }
+                    
+                    Object.keys(globalState.sets).forEach(s => initializeStats(s));
+                    log('Loaded');
+                } else {
+                    globalState.sets['📚 Tutorial'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_TUTORIAL)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    globalState.sets['🎯 Deep Focus'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_DEEP_FOCUS)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    globalState.sets['⚖️ Balanced Day'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_BALANCED)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                    globalState.skillConfig = JSON.parse(JSON.stringify(DEFAULT_SKILLS));
+                    globalState.currentSet = '📚 Tutorial';
+                    globalState.theme = 'cyberpunk';
+                    globalState.panelsCollapsed = {};
+                    initializeStats('📚 Tutorial');
+                    initializeStats('🎯 Deep Focus');
+                    initializeStats('⚖️ Balanced Day');
+                    saveGlobalState();
+                    log('New - 3 templates loaded');
+                }
+            } catch (e) {
+                log('Load error: ' + e.message);
+                globalState.sets['📚 Tutorial'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_TUTORIAL)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                globalState.sets['🎯 Deep Focus'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_DEEP_FOCUS)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                globalState.sets['⚖️ Balanced Day'] = { blocks: JSON.parse(JSON.stringify(TEMPLATE_BALANCED)), currentIndex: 0, isPaused: false, completed: [], stats: {} };
+                globalState.skillConfig = JSON.parse(JSON.stringify(DEFAULT_SKILLS));
+                globalState.currentSet = '📚 Tutorial';
+                globalState.theme = 'cyberpunk';
+                globalState.panelsCollapsed = {};
+                initializeStats('📚 Tutorial');
+                initializeStats('🎯 Deep Focus');
+                initializeStats('⚖️ Balanced Day');
+            }
+        }
+
+        function saveGlobalState() {
+            try {
+                localStorage.setItem('workday-global-final', JSON.stringify(globalState));
+            } catch (e) {
+                log('Save error: ' + e.message);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('confirmYes').addEventListener('click', function() {
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+        });
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(m => {
+            m.addEventListener('click', e => {
+                if (e.target === m) m.classList.remove('show');
+            });
+        });
+
+        // Initialize
+        loadGlobalState();
+        setTheme(globalState.theme);
+        
+        // Initialize custom titles
+        if (globalState.customTitle) {
+            document.getElementById('mainTitle').textContent = globalState.customTitle.main;
+            document.getElementById('subtitle').textContent = globalState.customTitle.subtitle;
+        }
+        
+        Object.keys(globalState.panelsCollapsed).forEach(id => {
+            if (globalState.panelsCollapsed[id]) {
+                const content = document.getElementById(id + '-content');
+                const toggle = document.getElementById(id + '-toggle');
+                if (content && toggle) {
+                    content.classList.add('collapsed');
+                    toggle.textContent = '▶';
+                }
+            }
+        });
+        
+        render();
+        log('🎮 Ready!');
+        
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                log('Notification permission: ' + permission);
+            });
+        }
+        
+        // VALIDATION: Verify all critical functions are available
+        const criticalFunctions = ['setTheme', 'togglePanel', 'toggleDropdown', 'openAddBlockModal', 
+                                   'completeBlock', 'pauseBlock', 'undoComplete', 'openManageSkillsModal',
+                                   'openSetManager', 'createNewSet', 'switchToSet', 'renameSet', 'deleteSet',
+                                   'openEditTitleModal', 'saveTitleEdit', 'openDebugConsole'];
+        console.log('=== FUNCTION VALIDATION ===');
+        criticalFunctions.forEach(fn => {
+            if (typeof window[fn] === 'function') {
+                console.log('✓', fn, 'loaded');
+            } else {
+                console.error('✗ MISSING:', fn);
+            }
+        });
+        console.log('=== VALIDATION COMPLETE ===');
+        console.log('Current set:', globalState.currentSet);
+        console.log('Available sets:', Object.keys(globalState.sets));
+        console.log('Skill config:', Object.keys(globalState.skillConfig));
+    </script>
+</body>
+</html>
